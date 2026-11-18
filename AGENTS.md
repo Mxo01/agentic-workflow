@@ -42,7 +42,10 @@ These rules apply to every repository, existing and new, with no opt-in.
 - Issues enabled, with `Bug` / `Feature` / `Task` available.
 - `main` protected by workflow, not by trust.
 - Branches and pull requests, never a direct commit to `main`.
-- CI builds and tests every pull request.
+- CI test jobs run only on pull requests into `main`: a feature-branch push and a
+  push to `main` start no test run. Deploy jobs still run on `main`.
+- The full test suite runs locally before every push; the PR check is the second
+  opinion, not the first.
 - Coverage is 100% on the files a change touches.
 - A deploy pipeline when the repository ships something runnable, and a merge to `main`
   is what deploys.
@@ -73,15 +76,18 @@ there is work to track.
   decision.
 - Scan for leaked secrets and data before every commit and push: credentials,
   tokens, `.env` values, connection strings, real user data in fixtures, logs,
-  or error messages. If a secret is already tracked, stop and tell me — deleting
-  the file is not enough, the history needs a decision.
+  or error messages. The local pre-commit scan and the CI secret scan both run
+  on every commit and every push, not only on pull requests. If a secret is
+  already tracked, stop and tell me — deleting the file is not enough, the
+  history needs a decision.
 
 ## Definition of done for a branch
 
 A branch is finished only when all of this is true:
 
-- it builds, and the full test suite is green once at the end — no skipped
-  tests, no `.only`, no TODOs left behind;
+- it builds, and the full test suite is green locally before the push — no
+  skipped tests, no `.only`, no TODOs left behind; the PR check is the second
+  opinion;
 - new behavior is covered by tests written before the PR — in the batched test
   stage that closes the batch, after my visual check (see Agent workflow);
 - the code follows clean architecture, SOLID, and DDD (below);
